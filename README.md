@@ -2,8 +2,6 @@
 
 ![architecture](architecture.png)
 
-## Project Overview
-
 This project demonstrates how to use Traefik as a gateway and implement an authentication system using Docker and Docker Compose. It sets up a Traefik reverse proxy to route requests to different backend services and an authentication service that verifies user credentials. The setup includes a MongoDB database, Redis, and multiple backend services.
 
 ## Features
