@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.5
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      traefik-net:
+        ipv4_address: 173.18.0.2
+
+  mongo:
+    image: "mongo:latest"
+    container_name: mongo
+    ports:
+      - "27018:27017"
+    networks:
+      traefik-net:
+        ipv4_address: 173.18.0.3
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: "redis:latest"
+    container_name: redis
+    ports:
+      - "6380:6379"
+    networks:
+      traefik-net:
+        ipv4_address: 173.18.0.4
+
+  auth-service:
+    build: ./auth-service
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`auth.localhost`)"
+      - "traefik.http.routers.auth.entrypoints=web"
+      - "traefik.http.services.auth.loadbalancer.server.port=8080"
+    ports:
+      - "3000:8080"
+    networks:
+      traefik-net:
+        ipv4_address: 173.18.0.5
+    environment:
+    - MONGODB_URL=mongodb://mongo:27017/db
+    - REDIS_ADDR=redis:6379
+    - JWT_KEY=very_much_so_secret_key
+    - PORT=8080
+    depends_on:
+      - mongo
+      - redis
+
+  backend1:
+    image: httpd:alpine
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`backend.localhost`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.middlewares=auth-middleware"
+      - "traefik.http.services.backend.loadbalancer.server.port=80"
+    volumes:
+      - ./backend1.html:/usr/local/apache2/htdocs/index.html
+    networks:
+      traefik-net:
+        ipv4_address: 173.18.0.6
+
+  backend2:
+    image: httpd:alpine
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`backend.localhost`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.routers.backend.middlewares=auth-middleware"
+      - "traefik.http.services.backend.loadbalancer.server.port=80"
+    volumes:
+      - ./backend2.html:/usr/local/apache2/htdocs/index.html
+    networks:
+      traefik-net:
+        ipv4_address: 173.18.0.7
+
+  auth-middleware:
+    image: traefik:v2.5
+    command:
+      - "--entrypoints.web.address=:8080"
+    labels:
+      - "traefik.http.middlewares.auth-middleware.forwardauth.address=http://auth-service:8080/validate"
+      - "traefik.http.middlewares.auth-middleware.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.auth-middleware.forwardauth.authResponseHeaders=X-Forwarded-User"
+      - "traefik.http.middlewares.auth-middleware.forwardauth.authResponseHeaders=Authorization"
+    networks:
+      traefik-net:
+        ipv4_address: 173.18.0.8
+    depends_on:
+      - auth-service
+
+networks:
+  traefik-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 173.18.0.0/16
+
+volumes:
+  mongo-data:
