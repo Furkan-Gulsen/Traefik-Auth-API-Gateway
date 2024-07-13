@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to backend1.localhost!</title>
+    <style>
+        :root {
+            --background-color-light: #f4f4f9;
+            --background-color-dark: #2d2d2d;
+            --text-color-light: #333;
+            --text-color-dark: #ddd;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html {
+            color-scheme: light dark;
+        }
+
+        body {
+            background-color: var(--background-color-light);
+            color: var(--text-color-light);
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: var(--background-color-dark);
+                color: var(--text-color-dark);
+            }
+        }
+
+        h1 {
+            font-size: 2em;
+            text-align: center;
+        }
+
+        p {
+            font-size: 1.2em;
+            text-align: center;
+            max-width: 600px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <h1>Welcome to backend1.localhost!</h1>
+    </div>
+</body>
+
+</html>
